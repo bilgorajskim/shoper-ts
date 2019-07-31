@@ -45,7 +45,7 @@ export class Client {
   }
 
   public updateUser(id: number, data: any) {
-    return this.requestResource(`users/${id}`, "POST", undefined, data);
+    return this.requestResource(`users/${id}`, "PUT", undefined, data);
   }
 
   public iterateOrders(sort?: any, filters?: string) {
@@ -57,7 +57,7 @@ export class Client {
   }
 
   public updateOrder(id: number, data: any) {
-    return this.requestResource(`orders/${id}`, "POST", undefined, data);
+    return this.requestResource(`orders/${id}`, "PUT", undefined, data);
   }
 
   public iterateStatuses(sort?: any, filters?: string) {
