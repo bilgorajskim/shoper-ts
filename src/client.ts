@@ -48,6 +48,10 @@ export class Client {
     return this.requestResource(`users/${id}`, "PUT", undefined, data);
   }
 
+  public addUser(data: any) {
+    return this.requestResource(`users`, "POST", undefined, data);
+  }
+
   public iterateOrders(sort?: any, filters?: string) {
     return this.iterateList("orders", sort, filters);
   }
@@ -58,6 +62,10 @@ export class Client {
 
   public updateOrder(id: number, data: any) {
     return this.requestResource(`orders/${id}`, "PUT", undefined, data);
+  }
+
+  public addOrder(data: any) {
+    return this.requestResource(`orders`, "POST", undefined, data);
   }
 
   public iterateStatuses(sort?: any, filters?: string) {
