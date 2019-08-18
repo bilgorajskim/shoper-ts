@@ -42,203 +42,203 @@ export class Client {
     this.endpoint = `${this.config.shopUrl}/webapi/rest`;
   }
 
-  public async iterateUsers(sort?: any, filters?: string) {
+  public iterateUsers(sort?: any, filters?: string) {
     return this.iterateList("users", sort, filters);
   }
 
-  public async getUser(id: number) {
+  public getUser(id: number) {
     return this.requestResource(`users/${id}`, "GET");
   }
 
-  public async deleteUser(id: number) {
+  public deleteUser(id: number) {
     return this.requestResource(`users/${id}`, "DELETE");
   }
 
-  public async updateUser(id: number, data: any) {
+  public updateUser(id: number, data: any) {
     return this.requestResource(`users/${id}`, "PUT", undefined, data);
   }
 
-  public async addUser(data: any) {
+  public addUser(data: any) {
     return this.requestResource(`users`, "POST", undefined, data);
   }
 
-  public async iterateOrders(sort?: any, filters?: string) {
+  public iterateOrders(sort?: any, filters?: string) {
     return this.iterateList("orders", sort, filters);
   }
 
-  public async getOrder(id: number) {
+  public getOrder(id: number) {
     return this.requestResource(`orders/${id}`, "GET");
   }
 
-  public async deleteOrder(id: number) {
+  public deleteOrder(id: number) {
     return this.requestResource(`order/${id}`, "DELETE");
   }
 
-  public async updateOrder(id: number, data: any) {
+  public updateOrder(id: number, data: any) {
     return this.requestResource(`orders/${id}`, "PUT", undefined, data);
   }
 
-  public async addOrder(data: any) {
+  public addOrder(data: any) {
     return this.requestResource(`orders`, "POST", undefined, data);
   }
 
-  public async iterateOrderProducts(sort?: any, filters?: string) {
+  public iterateOrderProducts(sort?: any, filters?: string) {
     return this.iterateList("order-products", sort, filters);
   }
 
-  public async getOrderProduct(id: number) {
+  public getOrderProduct(id: number) {
     return this.requestResource(`order-products/${id}`, "GET");
   }
 
-  public async deleteOrderProduct(id: number) {
+  public deleteOrderProduct(id: number) {
     return this.requestResource(`order-products/${id}`, "DELETE");
   }
 
-  public async updateOrderProduct(id: number, data: any) {
+  public updateOrderProduct(id: number, data: any) {
     return this.requestResource(`order-products/${id}`, "PUT", undefined, data);
   }
 
-  public async addOrderProduct(data: any) {
+  public addOrderProduct(data: any) {
     return this.requestResource(`order-products`, "POST", undefined, data);
   }
 
-  public async iterateProducts(sort?: any, filters?: string) {
+  public iterateProducts(sort?: any, filters?: string) {
     return this.iterateList("products", sort, filters);
   }
 
-  public async getProduct(id: number) {
+  public getProduct(id: number) {
     return this.requestResource(`products/${id}`, "GET");
   }
 
-  public async deleteProduct(id: number) {
+  public deleteProduct(id: number) {
     return this.requestResource(`products/${id}`, "DELETE");
   }
 
-  public async updateProduct(id: number, data: any) {
+  public updateProduct(id: number, data: any) {
     return this.requestResource(`products/${id}`, "PUT", undefined, data);
   }
 
-  public async addProduct(data: any) {
+  public addProduct(data: any) {
     return this.requestResource(`products`, "POST", undefined, data);
   }
 
-  public async iterateProductStocks(sort?: any, filters?: string) {
+  public iterateProductStocks(sort?: any, filters?: string) {
     return this.iterateList("product-stocks", sort, filters);
   }
 
-  public async getProductStock(id: number) {
+  public getProductStock(id: number) {
     return this.requestResource(`product-stocks/${id}`, "GET");
   }
 
-  public async deleteProductStock(id: number) {
+  public deleteProductStock(id: number) {
     return this.requestResource(`product-stocks/${id}`, "DELETE");
   }
 
-  public async updateProductStock(id: number, data: any) {
+  public updateProductStock(id: number, data: any) {
     return this.requestResource(`product-stocks/${id}`, "PUT", undefined, data);
   }
 
-  public async addProductStock(data: any) {
+  public addProductStock(data: any) {
     return this.requestResource(`product-stocks`, "POST", undefined, data);
   }
 
-  public async iterateProductImages(sort?: any, filters?: string) {
+  public iterateProductImages(sort?: any, filters?: string) {
     return this.iterateList("product-images", sort, filters);
   }
 
-  public async getProductImage(id: number) {
+  public getProductImage(id: number) {
     return this.requestResource(`product-images/${id}`, "GET");
   }
 
-  public async deleteProductImage(id: number) {
+  public deleteProductImage(id: number) {
     return this.requestResource(`product-images/${id}`, "DELETE");
   }
 
-  public async updateProductImage(id: number, data: any) {
+  public updateProductImage(id: number, data: any) {
     return this.requestResource(`product-images/${id}`, "PUT", undefined, data);
   }
 
-  public async addProductImage(data: any) {
+  public addProductImage(data: any) {
     return this.requestResource(`product-images`, "POST", undefined, data);
   }
 
-  public async iterateProductFiles(sort?: any, filters?: string) {
+  public iterateProductFiles(sort?: any, filters?: string) {
     return this.iterateList("product-files", sort, filters);
   }
 
-  public async getProductFile(id: number) {
+  public getProductFile(id: number) {
     return this.requestResource(`product-files/${id}`, "GET");
   }
 
-  public async deleteProductFile(id: number) {
+  public deleteProductFile(id: number) {
     return this.requestResource(`product-files/${id}`, "DELETE");
   }
 
-  public async updateProductFile(id: number, data: any) {
+  public updateProductFile(id: number, data: any) {
     return this.requestResource(`product-files/${id}`, "PUT", undefined, data);
   }
 
-  public async addProductFile(data: any) {
+  public addProductFile(data: any) {
     return this.requestResource(`product-files`, "POST", undefined, data);
   }
 
-  public async iterateCategories(sort?: any, filters?: string) {
+  public iterateCategories(sort?: any, filters?: string) {
     return this.iterateList("categories", sort, filters);
   }
 
-  public async getCategory(id: number) {
+  public getCategory(id: number) {
     return this.requestResource(`categories/${id}`, "GET");
   }
 
-  public async deleteCategory(id: number) {
+  public deleteCategory(id: number) {
     return this.requestResource(`categories/${id}`, "DELETE");
   }
 
-  public async updateCategory(id: number, data: any) {
+  public updateCategory(id: number, data: any) {
     return this.requestResource(`categories/${id}`, "PUT", undefined, data);
   }
 
-  public async addCategory(data: any) {
+  public addCategory(data: any) {
     return this.requestResource(`categories`, "POST", undefined, data);
   }
 
-  public async iterateStatuses(sort?: any, filters?: string) {
+  public iterateStatuses(sort?: any, filters?: string) {
     return this.iterateList("statuses", sort, filters);
   }
 
-  public async getStatus(id: number) {
+  public getStatus(id: number) {
     return this.requestResource(`statuses/${id}`, "GET");
   }
 
-  public async iterateTaxes(sort?: any, filters?: string) {
+  public iterateTaxes(sort?: any, filters?: string) {
     return this.iterateList("taxes", sort, filters);
   }
 
-  public async getTax(id: number) {
+  public getTax(id: number) {
     return this.requestResource(`taxes/${id}`, "GET");
   }
 
-  public async iterateCurrencies(sort?: any, filters?: string) {
+  public iterateCurrencies(sort?: any, filters?: string) {
     return this.iterateList("currencies", sort, filters);
   }
 
-  public async getCurrency(id: number) {
+  public getCurrency(id: number) {
     return this.requestResource(`currencies/${id}`, "GET");
   }
 
-  public async iterateLanguages(sort?: any, filters?: string) {
+  public iterateLanguages(sort?: any, filters?: string) {
     return this.iterateList("languages", sort, filters);
   }
 
-  public async getLanguage(id: number) {
+  public getLanguage(id: number) {
     return this.requestResource(`languages/${id}`, "GET");
   }
 
-  public async iterateCategoriesTree(sort?: any, filters?: string) {
-    return this.iterateList("categories-tree", sort, filters);
+  public getCategoriesTree() {
+    return this.requestResource(`categories-tree`, "GET");
   }
 
-  public async getCategoriesTree(id: number) {
+  public getCategoriesSubtree(id: number) {
     return this.requestResource(`categories-tree/${id}`, "GET");
   }
 
