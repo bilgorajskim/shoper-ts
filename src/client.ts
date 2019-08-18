@@ -82,14 +82,6 @@ export class Client {
     return this.requestResource(`orders`, "POST", undefined, data);
   }
 
-  public async iterateStatuses(sort?: any, filters?: string) {
-    return this.iterateList("statuses", sort, filters);
-  }
-
-  public async getStatus(id: number) {
-    return this.requestResource(`statuses/${id}`, "GET");
-  }
-
   public async iterateProducts(sort?: any, filters?: string) {
     return this.iterateList("products", sort, filters);
   }
@@ -108,6 +100,82 @@ export class Client {
 
   public async addProduct(data: any) {
     return this.requestResource(`products`, "POST", undefined, data);
+  }
+
+  public async iterateProductStocks(sort?: any, filters?: string) {
+    return this.iterateList("product-stocks", sort, filters);
+  }
+
+  public async getProductStock(id: number) {
+    return this.requestResource(`product-stocks/${id}`, "GET");
+  }
+
+  public async deleteProductStock(id: number) {
+    return this.requestResource(`product-stocks/${id}`, "DELETE");
+  }
+
+  public async updateProductStock(id: number, data: any) {
+    return this.requestResource(`product-stocks/${id}`, "PUT", undefined, data);
+  }
+
+  public async addProductStock(data: any) {
+    return this.requestResource(`product-stocks`, "POST", undefined, data);
+  }
+
+  public async iterateProductImages(sort?: any, filters?: string) {
+    return this.iterateList("product-images", sort, filters);
+  }
+
+  public async getProductImage(id: number) {
+    return this.requestResource(`product-images/${id}`, "GET");
+  }
+
+  public async deleteProductImage(id: number) {
+    return this.requestResource(`product-images/${id}`, "DELETE");
+  }
+
+  public async updateProductImage(id: number, data: any) {
+    return this.requestResource(`product-images/${id}`, "PUT", undefined, data);
+  }
+
+  public async addProductImage(data: any) {
+    return this.requestResource(`product-images`, "POST", undefined, data);
+  }
+
+  public async iterateProductFiles(sort?: any, filters?: string) {
+    return this.iterateList("product-files", sort, filters);
+  }
+
+  public async getProductFile(id: number) {
+    return this.requestResource(`product-files/${id}`, "GET");
+  }
+
+  public async deleteProductFile(id: number) {
+    return this.requestResource(`product-files/${id}`, "DELETE");
+  }
+
+  public async updateProductFile(id: number, data: any) {
+    return this.requestResource(`product-files/${id}`, "PUT", undefined, data);
+  }
+
+  public async addProductFile(data: any) {
+    return this.requestResource(`product-files`, "POST", undefined, data);
+  }
+
+  public async iterateStatuses(sort?: any, filters?: string) {
+    return this.iterateList("statuses", sort, filters);
+  }
+
+  public async getStatus(id: number) {
+    return this.requestResource(`statuses/${id}`, "GET");
+  }
+
+  public async iterateTaxes(sort?: any, filters?: string) {
+    return this.iterateList("taxes", sort, filters);
+  }
+
+  public async getTax(id: number) {
+    return this.requestResource(`taxes/${id}`, "GET");
   }
 
   private requestList(
