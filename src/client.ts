@@ -1,7 +1,8 @@
 import Request from "./request";
 
 export enum AuthMethod {
-  UserPassword
+  UserPassword,
+  Token
 }
 
 export type UserPasswordAuth = {
@@ -10,8 +11,14 @@ export type UserPasswordAuth = {
   password: string;
 };
 
+export type TokenAuth = {
+  method: AuthMethod.Token;
+  accessToken: string;
+  refreshToken: string;
+};
+
 export type ClientConfig = {
-  auth: UserPasswordAuth;
+  auth: UserPasswordAuth | TokenAuth;
   shopUrl: string;
 };
 
@@ -21,7 +28,6 @@ export type AuthToken = {
   date: number;
   // How many seconds it will live
   expiresIn: number;
-  tokenType: string;
 };
 
 export class Client {
@@ -36,44 +42,72 @@ export class Client {
     this.endpoint = `${this.config.shopUrl}/webapi/rest`;
   }
 
-  public iterateUsers(sort?: any, filters?: string) {
+  public async iterateUsers(sort?: any, filters?: string) {
     return this.iterateList("users", sort, filters);
   }
 
-  public getUser(id: number) {
+  public async getUser(id: number) {
     return this.requestResource(`users/${id}`, "GET");
   }
 
-  public updateUser(id: number, data: any) {
+  public async deleteUser(id: number) {
+    return this.requestResource(`users/${id}`, "DELETE");
+  }
+
+  public async updateUser(id: number, data: any) {
     return this.requestResource(`users/${id}`, "PUT", undefined, data);
   }
 
-  public addUser(data: any) {
+  public async addUser(data: any) {
     return this.requestResource(`users`, "POST", undefined, data);
   }
 
-  public iterateOrders(sort?: any, filters?: string) {
+  public async iterateOrders(sort?: any, filters?: string) {
     return this.iterateList("orders", sort, filters);
   }
 
-  public getOrder(id: number) {
+  public async getOrder(id: number) {
     return this.requestResource(`orders/${id}`, "GET");
   }
 
-  public updateOrder(id: number, data: any) {
+  public async deleteOrder(id: number) {
+    return this.requestResource(`order/${id}`, "DELETE");
+  }
+
+  public async updateOrder(id: number, data: any) {
     return this.requestResource(`orders/${id}`, "PUT", undefined, data);
   }
 
-  public addOrder(data: any) {
+  public async addOrder(data: any) {
     return this.requestResource(`orders`, "POST", undefined, data);
   }
 
-  public iterateStatuses(sort?: any, filters?: string) {
+  public async iterateStatuses(sort?: any, filters?: string) {
     return this.iterateList("statuses", sort, filters);
   }
 
-  public getStatus(id: number) {
+  public async getStatus(id: number) {
     return this.requestResource(`statuses/${id}`, "GET");
+  }
+
+  public async iterateProducts(sort?: any, filters?: string) {
+    return this.iterateList("products", sort, filters);
+  }
+
+  public async getProduct(id: number) {
+    return this.requestResource(`products/${id}`, "GET");
+  }
+
+  public async deleteProduct(id: number) {
+    return this.requestResource(`products/${id}`, "DELETE");
+  }
+
+  public async updateProduct(id: number, data: any) {
+    return this.requestResource(`products/${id}`, "PUT", undefined, data);
+  }
+
+  public async addProduct(data: any) {
+    return this.requestResource(`products`, "POST", undefined, data);
   }
 
   private requestList(
@@ -136,20 +170,16 @@ export class Client {
     if (this.shouldRefreshToken) {
       await this.refreshAccessToken();
     }
-    try {
-      const resp = await Request.request({
-        url: `${this.endpoint}/${path}`,
-        method: method as any,
-        params,
-        data,
-        headers: {
-          Authorization: `Bearer ${this.authToken!.accessToken}`
-        }
-      });
-      return resp.data;
-    } catch (error) {
-      throw error;
-    }
+    const resp = await Request.request({
+      url: `${this.endpoint}/${path}`,
+      method: method as any,
+      params,
+      data,
+      headers: {
+        Authorization: `Bearer ${this.authToken!.accessToken}`
+      }
+    });
+    return resp.data;
   }
 
   private get shouldRefreshToken() {
@@ -182,12 +212,17 @@ export class Client {
         this.authToken = {
           accessToken: responseToken.access_token,
           expiresIn: responseToken.expires_in,
-          tokenType: responseToken.token_type,
           date: Date.now() / 1000
         };
       } catch (error) {
         throw new Error("Auth error");
       }
+    } else if (this.config.auth.method === AuthMethod.Token) {
+      this.authToken = {
+        accessToken: this.config.auth.accessToken,
+        expiresIn: 99999999,
+        date: Date.now() / 1000
+      };
     } else {
       throw new Error("Unknown auth method");
     }
