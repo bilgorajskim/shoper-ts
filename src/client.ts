@@ -251,7 +251,7 @@ export class Client {
   ) {
     let paramObject: any = {
       limit,
-      page
+      offset: limit * page
     };
     if (sort) {
       paramObject.order = sort;
