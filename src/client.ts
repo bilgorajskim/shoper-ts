@@ -202,6 +202,26 @@ export class Client {
     return this.requestResource(`categories`, "POST", undefined, data);
   }
 
+  public iterateProducers(sort?: any, filters?: string) {
+    return this.iterateList("producers", sort, filters);
+  }
+
+  public getProducer(id: number) {
+    return this.requestResource(`producers/${id}`, "GET");
+  }
+
+  public deleteProducer(id: number) {
+    return this.requestResource(`producers/${id}`, "DELETE");
+  }
+
+  public updateProducer(id: number, data: any) {
+    return this.requestResource(`producers/${id}`, "PUT", undefined, data);
+  }
+
+  public addProducer(data: any) {
+    return this.requestResource(`producers`, "POST", undefined, data);
+  }
+
   public iterateStatuses(sort?: any, filters?: string) {
     return this.iterateList("statuses", sort, filters);
   }
