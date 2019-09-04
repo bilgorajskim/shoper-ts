@@ -322,16 +322,24 @@ export class Client {
     if (this.shouldRefreshToken) {
       await this.refreshAccessToken();
     }
-    const resp = await Request.request({
-      url: `${this.endpoint}/${path}`,
-      method: method as any,
-      params,
-      data,
-      headers: {
-        Authorization: `Bearer ${this.authToken!.accessToken}`
+    try {
+      const resp = await Request.request({
+        url: `${this.endpoint}/${path}`,
+        method: method as any,
+        params,
+        data,
+        headers: {
+          Authorization: `Bearer ${this.authToken!.accessToken}`
+        }
+      });
+      return resp.data;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        return null;
+      } else {
+        throw error;
       }
-    });
-    return resp.data;
+    }
   }
 
   private get shouldRefreshToken() {
