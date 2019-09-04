@@ -222,6 +222,46 @@ export class Client {
     return this.requestResource(`producers`, "POST", undefined, data);
   }
 
+  public iterateAttributes(sort?: any, filters?: string) {
+    return this.iterateList("attributes", sort, filters);
+  }
+
+  public getAttribute(id: number) {
+    return this.requestResource(`attributes/${id}`, "GET");
+  }
+
+  public deleteAttribute(id: number) {
+    return this.requestResource(`attributes/${id}`, "DELETE");
+  }
+
+  public updateAttribute(id: number, data: any) {
+    return this.requestResource(`attributes/${id}`, "PUT", undefined, data);
+  }
+
+  public addAttribute(data: any) {
+    return this.requestResource(`attributes`, "POST", undefined, data);
+  }
+
+  public iterateAttributeGroups(sort?: any, filters?: string) {
+    return this.iterateList("attribute-groups", sort, filters);
+  }
+
+  public getAttributeGroup(id: number) {
+    return this.requestResource(`attribute-groups/${id}`, "GET");
+  }
+
+  public deleteAttributeGroup(id: number) {
+    return this.requestResource(`attribute-groups/${id}`, "DELETE");
+  }
+
+  public updateAttributeGroup(id: number, data: any) {
+    return this.requestResource(`attribute-groups/${id}`, "PUT", undefined, data);
+  }
+
+  public addAttributeGroup(data: any) {
+    return this.requestResource(`attribute-groups`, "POST", undefined, data);
+  }
+
   public iterateStatuses(sort?: any, filters?: string) {
     return this.iterateList("statuses", sort, filters);
   }
