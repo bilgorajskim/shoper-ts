@@ -42,7 +42,7 @@ export class Client {
     this.endpoint = `${this.config.shopUrl}/webapi/rest`;
   }
 
-  public iterateUsers(sort?: any, filters?: string) {
+  public iterateUsers(sort?: any, filters?: object) {
     return this.iterateList("users", sort, filters);
   }
 
@@ -62,7 +62,7 @@ export class Client {
     return this.requestResource(`users`, "POST", undefined, data);
   }
 
-  public iterateOrders(sort?: any, filters?: string) {
+  public iterateOrders(sort?: any, filters?: object) {
     return this.iterateList("orders", sort, filters);
   }
 
@@ -82,7 +82,7 @@ export class Client {
     return this.requestResource(`orders`, "POST", undefined, data);
   }
 
-  public iterateOrderProducts(sort?: any, filters?: string) {
+  public iterateOrderProducts(sort?: any, filters?: object) {
     return this.iterateList("order-products", sort, filters);
   }
 
@@ -102,7 +102,7 @@ export class Client {
     return this.requestResource(`order-products`, "POST", undefined, data);
   }
 
-  public iterateProducts(sort?: any, filters?: string) {
+  public iterateProducts(sort?: any, filters?: object) {
     return this.iterateList("products", sort, filters);
   }
 
@@ -122,7 +122,7 @@ export class Client {
     return this.requestResource(`products`, "POST", undefined, data);
   }
 
-  public iterateProductStocks(sort?: any, filters?: string) {
+  public iterateProductStocks(sort?: any, filters?: object) {
     return this.iterateList("product-stocks", sort, filters);
   }
 
@@ -142,7 +142,7 @@ export class Client {
     return this.requestResource(`product-stocks`, "POST", undefined, data);
   }
 
-  public iterateProductImages(sort?: any, filters?: string) {
+  public iterateProductImages(sort?: any, filters?: object) {
     return this.iterateList("product-images", sort, filters);
   }
 
@@ -162,7 +162,7 @@ export class Client {
     return this.requestResource(`product-images`, "POST", undefined, data);
   }
 
-  public iterateProductFiles(sort?: any, filters?: string) {
+  public iterateProductFiles(sort?: any, filters?: object) {
     return this.iterateList("product-files", sort, filters);
   }
 
@@ -182,7 +182,7 @@ export class Client {
     return this.requestResource(`product-files`, "POST", undefined, data);
   }
 
-  public iterateCategories(sort?: any, filters?: string) {
+  public iterateCategories(sort?: any, filters?: object) {
     return this.iterateList("categories", sort, filters);
   }
 
@@ -202,7 +202,7 @@ export class Client {
     return this.requestResource(`categories`, "POST", undefined, data);
   }
 
-  public iterateProducers(sort?: any, filters?: string) {
+  public iterateProducers(sort?: any, filters?: object) {
     return this.iterateList("producers", sort, filters);
   }
 
@@ -222,7 +222,7 @@ export class Client {
     return this.requestResource(`producers`, "POST", undefined, data);
   }
 
-  public iterateAttributes(sort?: any, filters?: string) {
+  public iterateAttributes(sort?: any, filters?: object) {
     return this.iterateList("attributes", sort, filters);
   }
 
@@ -242,7 +242,7 @@ export class Client {
     return this.requestResource(`attributes`, "POST", undefined, data);
   }
 
-  public iterateAttributeGroups(sort?: any, filters?: string) {
+  public iterateAttributeGroups(sort?: any, filters?: object) {
     return this.iterateList("attribute-groups", sort, filters);
   }
 
@@ -262,7 +262,7 @@ export class Client {
     return this.requestResource(`attribute-groups`, "POST", undefined, data);
   }
 
-  public iterateStatuses(sort?: any, filters?: string) {
+  public iterateStatuses(sort?: any, filters?: object) {
     return this.iterateList("statuses", sort, filters);
   }
 
@@ -270,7 +270,7 @@ export class Client {
     return this.requestResource(`statuses/${id}`, "GET");
   }
 
-  public iterateTaxes(sort?: any, filters?: string) {
+  public iterateTaxes(sort?: any, filters?: object) {
     return this.iterateList("taxes", sort, filters);
   }
 
@@ -278,7 +278,7 @@ export class Client {
     return this.requestResource(`taxes/${id}`, "GET");
   }
 
-  public iterateCurrencies(sort?: any, filters?: string) {
+  public iterateCurrencies(sort?: any, filters?: object) {
     return this.iterateList("currencies", sort, filters);
   }
 
@@ -286,7 +286,7 @@ export class Client {
     return this.requestResource(`currencies/${id}`, "GET");
   }
 
-  public iterateLanguages(sort?: any, filters?: string) {
+  public iterateLanguages(sort?: any, filters?: object) {
     return this.iterateList("languages", sort, filters);
   }
 
@@ -307,7 +307,7 @@ export class Client {
     limit: number = 50,
     page: number = 0,
     sort?: any,
-    filters?: string
+    filters?: object
   ) {
     let paramObject: any = {
       limit,
@@ -317,7 +317,7 @@ export class Client {
       paramObject.order = sort;
     }
     if (filters) {
-      paramObject.filters = filters;
+      paramObject.filters = JSON.stringify(filters);
     }
     return this.requestResource(`${resource}`, "GET", paramObject);
   }
@@ -325,7 +325,7 @@ export class Client {
   public async *iterateList(
     resource: string,
     sort?: any,
-    filters?: string
+    filters?: object
   ): AsyncIterableIterator<any> {
     let currentPage = 0;
     while (true) {
@@ -415,7 +415,8 @@ export class Client {
           date: Date.now() / 1000
         };
       } catch (error) {
-        throw new Error("Auth error");
+        error.message = "Auth error";
+        throw error;
       }
     } else if (this.config.auth.method === AuthMethod.Token) {
       this.authToken = {
