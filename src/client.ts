@@ -262,6 +262,46 @@ export class Client {
     return this.requestResource(`attribute-groups`, "POST", undefined, data);
   }
 
+  public iterateUserAddresses(sort?: any, filters?: object) {
+    return this.iterateList("user-addresses", sort, filters);
+  }
+
+  public getUserAddress(id: number) {
+    return this.requestResource(`user-addresses/${id}`, "GET");
+  }
+
+  public deleteUserAddress(id: number) {
+    return this.requestResource(`user-addresses/${id}`, "DELETE");
+  }
+
+  public updateUserAddress(id: number, data: any) {
+    return this.requestResource(`user-addresses/${id}`, "PUT", undefined, data);
+  }
+
+  public addUserAddress(data: any) {
+    return this.requestResource(`user-addresses`, "POST", undefined, data);
+  }
+
+  public iterateParcels(sort?: any, filters?: object) {
+    return this.iterateList("parcels", sort, filters);
+  }
+
+  public getParcel(id: number) {
+    return this.requestResource(`parcels/${id}`, "GET");
+  }
+
+  public deleteParcel(id: number) {
+    return this.requestResource(`parcels/${id}`, "DELETE");
+  }
+
+  public updateParcel(id: number, data: any) {
+    return this.requestResource(`parcels/${id}`, "PUT", undefined, data);
+  }
+
+  public addParcel(data: any) {
+    return this.requestResource(`parcels`, "POST", undefined, data);
+  }
+
   public iterateStatuses(sort?: any, filters?: object) {
     return this.iterateList("statuses", sort, filters);
   }
@@ -351,6 +391,10 @@ export class Client {
       }
       currentPage += 1;
     }
+  }
+
+  public bulk(data: any) {
+    return this.requestResource("bulk", "POST", undefined, data);
   }
 
   private async requestResource(
