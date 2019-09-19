@@ -393,8 +393,30 @@ export class Client {
     }
   }
 
-  public bulk(data: any) {
-    return this.requestResource("bulk", "POST", undefined, data);
+  public async bulk(data: any) {
+    if (this.shouldRefreshToken) {
+      await this.refreshAccessToken();
+    }
+    try {
+      const resp = await Request.request({
+        url: `${this.endpoint}/bulk`,
+        method: "POST",
+        data,
+        headers: {
+          Authorization: `Bearer ${this.authToken!.accessToken}`
+        },
+        validateStatus: function (status: number) {
+          return status === 404 || (status >= 200 && status < 300);
+        }
+      });
+      return resp.data;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        return null;
+      } else {
+        throw error;
+      }
+    }
   }
 
   private async requestResource(
