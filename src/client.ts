@@ -485,7 +485,6 @@ export class Client {
           expiresIn: responseToken.expires_in,
           date: Date.now() / 1000
         };
-        console.log("got token", this.authToken);
       } catch (error) {
         error.message = "Auth error";
         throw error;
