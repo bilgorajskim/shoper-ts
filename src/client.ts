@@ -2,7 +2,7 @@ import Request from "./request";
 
 export enum AuthMethod {
   UserPassword,
-  Token
+  Token,
 }
 
 export type UserPasswordAuth = {
@@ -347,6 +347,111 @@ export class Client {
     return this.requestResource(`categories-tree/${id}`, "GET");
   }
 
+  public iterateNews(sort?: any, filters?: object) {
+    return this.iterateList("news", sort, filters);
+  }
+
+  public getNews(id: number) {
+    return this.requestResource(`news/${id}`, "GET");
+  }
+
+  public deleteNews(id: number) {
+    return this.requestResource(`news/${id}`, "DELETE");
+  }
+
+  public updateNews(id: number, data: any) {
+    return this.requestResource(`news/${id}`, "PUT", undefined, data);
+  }
+
+  public addNews(data: any) {
+    return this.requestResource(`news`, "POST", undefined, data);
+  }
+
+  public iterateNewsCategories(sort?: any, filters?: object) {
+    return this.iterateList("news-categories", sort, filters);
+  }
+
+  public getNewsCategory(id: number) {
+    return this.requestResource(`news-categories/${id}`, "GET");
+  }
+
+  public deleteNewsCategory(id: number) {
+    return this.requestResource(`news-categories/${id}`, "DELETE");
+  }
+
+  public updateNewsCategory(id: number, data: any) {
+    return this.requestResource(
+      `news-categories/${id}`,
+      "PUT",
+      undefined,
+      data
+    );
+  }
+
+  public addNewsCategory(data: any) {
+    return this.requestResource(`news-categories`, "POST", undefined, data);
+  }
+
+  public iterateNewsTags(sort?: any, filters?: object) {
+    return this.iterateList("news-tags", sort, filters);
+  }
+
+  public getNewsTag(id: number) {
+    return this.requestResource(`news-tags/${id}`, "GET");
+  }
+
+  public deleteNewsTag(id: number) {
+    return this.requestResource(`news-tags/${id}`, "DELETE");
+  }
+
+  public updateNewsTag(id: number, data: any) {
+    return this.requestResource(`news-tags/${id}`, "PUT", undefined, data);
+  }
+
+  public addNewsTag(data: any) {
+    return this.requestResource(`news-tags`, "POST", undefined, data);
+  }
+
+  public iterateNewsComments(sort?: any, filters?: object) {
+    return this.iterateList("news-comments", sort, filters);
+  }
+
+  public getNewsComment(id: number) {
+    return this.requestResource(`news-comments/${id}`, "GET");
+  }
+
+  public deleteNewsComment(id: number) {
+    return this.requestResource(`news-comments/${id}`, "DELETE");
+  }
+
+  public updateNewsComment(id: number, data: any) {
+    return this.requestResource(`news-comments/${id}`, "PUT", undefined, data);
+  }
+
+  public addNewsComment(data: any) {
+    return this.requestResource(`news-comments`, "POST", undefined, data);
+  }
+
+  public iterateNewsFiles(sort?: any, filters?: object) {
+    return this.iterateList("news-files", sort, filters);
+  }
+
+  public getNewsFile(id: number) {
+    return this.requestResource(`news-files/${id}`, "GET");
+  }
+
+  public deleteNewsFile(id: number) {
+    return this.requestResource(`news-files/${id}`, "DELETE");
+  }
+
+  public updateNewsFile(id: number, data: any) {
+    return this.requestResource(`news-files/${id}`, "PUT", undefined, data);
+  }
+
+  public addNewsFile(data: any) {
+    return this.requestResource(`news-files`, "POST", undefined, data);
+  }
+
   private requestList(
     resource: string,
     limit: number = 50,
@@ -356,7 +461,7 @@ export class Client {
   ) {
     let paramObject: any = {
       limit,
-      offset: limit * page
+      offset: limit * page,
     };
     if (sort) {
       paramObject.order = sort;
@@ -408,11 +513,11 @@ export class Client {
         method: "POST",
         data,
         headers: {
-          Authorization: `Bearer ${this.authToken!.accessToken}`
+          Authorization: `Bearer ${this.authToken!.accessToken}`,
         },
-        validateStatus: function(status: number) {
+        validateStatus: function (status: number) {
           return status === 404 || (status >= 200 && status < 300);
-        }
+        },
       });
       return resp.data;
     } catch (error) {
@@ -440,8 +545,8 @@ export class Client {
         params,
         data,
         headers: {
-          Authorization: `Bearer ${this.authToken!.accessToken}`
-        }
+          Authorization: `Bearer ${this.authToken!.accessToken}`,
+        },
       });
       return resp.data;
     } catch (error) {
@@ -470,20 +575,20 @@ export class Client {
           `${this.endpoint}/auth`,
           {
             client_id: this.config.auth.username,
-            client_secret: this.config.auth.password
+            client_secret: this.config.auth.password,
           },
           {
             params: {
               client_id: this.config.auth.username,
-              client_secret: this.config.auth.password
-            }
+              client_secret: this.config.auth.password,
+            },
           }
         );
         const responseToken = resp.data;
         this.authToken = {
           accessToken: responseToken.access_token,
           expiresIn: responseToken.expires_in,
-          date: Date.now() / 1000
+          date: Date.now() / 1000,
         };
       } catch (error) {
         error.message = "Auth error";
@@ -493,7 +598,7 @@ export class Client {
       this.authToken = {
         accessToken: this.config.auth.accessToken,
         expiresIn: 99999999,
-        date: Date.now() / 1000
+        date: Date.now() / 1000,
       };
     } else {
       throw new Error("Unknown auth method");
