@@ -259,7 +259,7 @@ export class Client {
       `attribute-groups/${id}`,
       "PUT",
       undefined,
-      data
+      data,
     );
   }
 
@@ -384,7 +384,7 @@ export class Client {
       `news-categories/${id}`,
       "PUT",
       undefined,
-      data
+      data,
     );
   }
 
@@ -452,12 +452,36 @@ export class Client {
     return this.requestResource(`news-files`, "POST", undefined, data);
   }
 
+  public iterateShippings(sort?: any, filters?: object) {
+    return this.iterateList("shippings", sort, filters);
+  }
+
+  public getShipping(id: number) {
+    return this.requestResource(`shippings/${id}`, "GET");
+  }
+
+  public deleteShipping(id: number) {
+    return this.requestResource(`shippings/${id}`, "DELETE");
+  }
+
+  public updateShipping(id: number, data: any) {
+    return this.requestResource(`shippings/${id}`, "PUT", undefined, data);
+  }
+
+  public addShipping(data: any) {
+    return this.requestResource(`shippings`, "POST", undefined, data);
+  }
+
+  public getApplicationConfig() {
+    return this.requestResource(`application-config`, "GET");
+  }
+
   private requestList(
     resource: string,
     limit: number = 50,
     page: number = 0,
     sort?: any,
-    filters?: object
+    filters?: object,
   ) {
     let paramObject: any = {
       limit,
@@ -475,7 +499,7 @@ export class Client {
   public async *iterateList(
     resource: string,
     sort?: any,
-    filters?: object
+    filters?: object,
   ): AsyncIterableIterator<any> {
     let currentPage = 0;
     while (true) {
@@ -485,7 +509,7 @@ export class Client {
           50,
           currentPage,
           sort,
-          filters
+          filters,
         );
         if (data.list.length < 1) {
           return;
@@ -533,7 +557,7 @@ export class Client {
     path: string,
     method: string,
     params?: any,
-    data?: any
+    data?: any,
   ) {
     if (this.shouldRefreshToken) {
       await this.refreshAccessToken();
@@ -582,7 +606,7 @@ export class Client {
               client_id: this.config.auth.username,
               client_secret: this.config.auth.password,
             },
-          }
+          },
         );
         const responseToken = resp.data;
         this.authToken = {
