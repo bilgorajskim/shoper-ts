@@ -1,4 +1,6 @@
+import { LeakyBucket } from "ts-leaky-bucket";
 import Request from "./request";
+import { shoper_resources } from "./resources";
 
 export enum AuthMethod {
   UserPassword,
@@ -13,503 +15,182 @@ export type UserPasswordAuth = {
 
 export type TokenAuth = {
   method: AuthMethod.Token;
-  accessToken: string;
-  refreshToken: string;
+  access_token: string;
+  refresh_token: string;
 };
 
 export type ClientConfig = {
   auth: UserPasswordAuth | TokenAuth;
-  shopUrl: string;
+  shop_url: string;
 };
 
-export type AuthToken = {
-  accessToken: string;
+export type auth_token = {
+  access_token: string;
   // Token creation date, timestamp in seconds
   date: number;
   // How many seconds it will live
-  expiresIn: number;
+  expires_in: number;
+};
+
+export type ShoperResourceMethod =
+  | "DELETE"
+  | "GET"
+  | "INSERT"
+  | "LIST"
+  | "UPDATE";
+
+type ShoperResource = typeof shoper_resources[number]["name"];
+
+/*
+  Some resources are labeled in Shoper documentation as
+  having "LIST" method. However, they don't behave like
+  other lists. They don't accept an offset, and the response
+  isn't wrapped in a pagination object. 
+*/
+const list_resources_that_are_not_lists = [
+  "categories-tree",
+  "application-config",
+  "application-version",
+  "dashboard-activities",
+  "object-mtime",
+];
+
+function validate_resource_call(
+  resource: ShoperResource,
+  method: ShoperResourceMethod
+) {
+  const resource_info = shoper_resources.find((r) => r.name === resource);
+  if (!resource_info) {
+    const resource_names = shoper_resources.map((r) => r.name);
+    throw new Error(
+      `Unrecognized resource: "${resource}". Supported resources: ${resource_names.join(
+        ", "
+      )}`
+    );
+  }
+  const resource_methods: ShoperResourceMethod[] = resource_info.methods;
+  if (!resource_methods.includes(method)) {
+    if (
+      method === "LIST" &&
+      list_resources_that_are_not_lists.includes(resource)
+    ) {
+      return true;
+    }
+    throw new Error(`Resource "${resource}" cannot be called with ${method}`);
+  }
+  return true;
+}
+
+// Refill rate is 2 items per second.
+const bucket = new LeakyBucket({
+  capacity: 10,
+  intervalMillis: 5_000,
+  additionalTimeoutMillis: 0, // no timeout
+});
+
+type ShoperListOptions = {
+  sort?: any;
+  filters?: object;
 };
 
 export class Client {
   private config: ClientConfig;
-  private authToken?: AuthToken;
+  private auth_token?: auth_token;
   private endpoint: string;
 
   constructor(config: ClientConfig) {
     this.config = config;
     // Remove trailing slash(es)
-    this.config.shopUrl = this.config.shopUrl.replace(/\/+$/, "");
-    this.endpoint = `${this.config.shopUrl}/webapi/rest`;
+    this.config.shop_url = this.config.shop_url.replace(/\/+$/, "");
+    this.endpoint = `${this.config.shop_url}/webapi/rest`;
   }
 
-  public iterateUsers(sort?: any, filters?: object) {
-    return this.iterateList("users", sort, filters);
+  public delete(resource: ShoperResource, id: number) {
+    validate_resource_call(resource, "DELETE");
+    return this.request_resource(`${resource}/${id}`, "DELETE");
   }
 
-  public getUser(id: number) {
-    return this.requestResource(`users/${id}`, "GET");
-  }
+  public get(resource: ShoperResource, id?: number, params?: any) {
+    validate_resource_call(resource, "GET");
 
-  public deleteUser(id: number) {
-    return this.requestResource(`users/${id}`, "DELETE");
-  }
+    if (!id && !list_resources_that_are_not_lists.includes(resource)) {
+      throw new Error(`Cannot GET resource "${resource}" without an ID.`);
+    }
 
-  public updateUser(id: number, data: any) {
-    return this.requestResource(`users/${id}`, "PUT", undefined, data);
-  }
-
-  public addUser(data: any) {
-    return this.requestResource(`users`, "POST", undefined, data);
-  }
-
-  public iterateOrders(sort?: any, filters?: object) {
-    return this.iterateList("orders", sort, filters);
-  }
-
-  public getOrder(id: number) {
-    return this.requestResource(`orders/${id}`, "GET");
-  }
-
-  public deleteOrder(id: number) {
-    return this.requestResource(`order/${id}`, "DELETE");
-  }
-
-  public updateOrder(id: number, data: any) {
-    return this.requestResource(`orders/${id}`, "PUT", undefined, data);
-  }
-
-  public addOrder(data: any) {
-    return this.requestResource(`orders`, "POST", undefined, data);
-  }
-
-  public iterateOrderProducts(sort?: any, filters?: object) {
-    return this.iterateList("order-products", sort, filters);
-  }
-
-  public getOrderProduct(id: number) {
-    return this.requestResource(`order-products/${id}`, "GET");
-  }
-
-  public deleteOrderProduct(id: number) {
-    return this.requestResource(`order-products/${id}`, "DELETE");
-  }
-
-  public updateOrderProduct(id: number, data: any) {
-    return this.requestResource(`order-products/${id}`, "PUT", undefined, data);
-  }
-
-  public addOrderProduct(data: any) {
-    return this.requestResource(`order-products`, "POST", undefined, data);
-  }
-
-  public iterateProducts(sort?: any, filters?: object) {
-    return this.iterateList("products", sort, filters);
-  }
-
-  public getProduct(id: number) {
-    return this.requestResource(`products/${id}`, "GET");
-  }
-
-  public deleteProduct(id: number) {
-    return this.requestResource(`products/${id}`, "DELETE");
-  }
-
-  public updateProduct(id: number, data: any) {
-    return this.requestResource(`products/${id}`, "PUT", undefined, data);
-  }
-
-  public addProduct(data: any) {
-    return this.requestResource(`products`, "POST", undefined, data);
-  }
-
-  public iterateProductStocks(sort?: any, filters?: object) {
-    return this.iterateList("product-stocks", sort, filters);
-  }
-
-  public getProductStock(id: number) {
-    return this.requestResource(`product-stocks/${id}`, "GET");
-  }
-
-  public deleteProductStock(id: number) {
-    return this.requestResource(`product-stocks/${id}`, "DELETE");
-  }
-
-  public updateProductStock(id: number, data: any) {
-    return this.requestResource(`product-stocks/${id}`, "PUT", undefined, data);
-  }
-
-  public addProductStock(data: any) {
-    return this.requestResource(`product-stocks`, "POST", undefined, data);
-  }
-
-  public iterateProductImages(sort?: any, filters?: object) {
-    return this.iterateList("product-images", sort, filters);
-  }
-
-  public getProductImage(id: number) {
-    return this.requestResource(`product-images/${id}`, "GET");
-  }
-
-  public deleteProductImage(id: number) {
-    return this.requestResource(`product-images/${id}`, "DELETE");
-  }
-
-  public updateProductImage(id: number, data: any) {
-    return this.requestResource(`product-images/${id}`, "PUT", undefined, data);
-  }
-
-  public addProductImage(data: any) {
-    return this.requestResource(`product-images`, "POST", undefined, data);
-  }
-
-  public iterateProductFiles(sort?: any, filters?: object) {
-    return this.iterateList("product-files", sort, filters);
-  }
-
-  public getProductFile(id: number) {
-    return this.requestResource(`product-files/${id}`, "GET");
-  }
-
-  public deleteProductFile(id: number) {
-    return this.requestResource(`product-files/${id}`, "DELETE");
-  }
-
-  public updateProductFile(id: number, data: any) {
-    return this.requestResource(`product-files/${id}`, "PUT", undefined, data);
-  }
-
-  public addProductFile(data: any) {
-    return this.requestResource(`product-files`, "POST", undefined, data);
-  }
-
-  public iterateCategories(sort?: any, filters?: object) {
-    return this.iterateList("categories", sort, filters);
-  }
-
-  public getCategory(id: number) {
-    return this.requestResource(`categories/${id}`, "GET");
-  }
-
-  public deleteCategory(id: number) {
-    return this.requestResource(`categories/${id}`, "DELETE");
-  }
-
-  public updateCategory(id: number, data: any) {
-    return this.requestResource(`categories/${id}`, "PUT", undefined, data);
-  }
-
-  public addCategory(data: any) {
-    return this.requestResource(`categories`, "POST", undefined, data);
-  }
-
-  public iterateProducers(sort?: any, filters?: object) {
-    return this.iterateList("producers", sort, filters);
-  }
-
-  public getProducer(id: number) {
-    return this.requestResource(`producers/${id}`, "GET");
-  }
-
-  public deleteProducer(id: number) {
-    return this.requestResource(`producers/${id}`, "DELETE");
-  }
-
-  public updateProducer(id: number, data: any) {
-    return this.requestResource(`producers/${id}`, "PUT", undefined, data);
-  }
-
-  public addProducer(data: any) {
-    return this.requestResource(`producers`, "POST", undefined, data);
-  }
-
-  public iterateAttributes(sort?: any, filters?: object) {
-    return this.iterateList("attributes", sort, filters);
-  }
-
-  public getAttribute(id: number) {
-    return this.requestResource(`attributes/${id}`, "GET");
-  }
-
-  public deleteAttribute(id: number) {
-    return this.requestResource(`attributes/${id}`, "DELETE");
-  }
-
-  public updateAttribute(id: number, data: any) {
-    return this.requestResource(`attributes/${id}`, "PUT", undefined, data);
-  }
-
-  public addAttribute(data: any) {
-    return this.requestResource(`attributes`, "POST", undefined, data);
-  }
-
-  public iterateAttributeGroups(sort?: any, filters?: object) {
-    return this.iterateList("attribute-groups", sort, filters);
-  }
-
-  public getAttributeGroup(id: number) {
-    return this.requestResource(`attribute-groups/${id}`, "GET");
-  }
-
-  public deleteAttributeGroup(id: number) {
-    return this.requestResource(`attribute-groups/${id}`, "DELETE");
-  }
-
-  public updateAttributeGroup(id: number, data: any) {
-    return this.requestResource(
-      `attribute-groups/${id}`,
-      "PUT",
-      undefined,
-      data,
+    return this.request_resource(
+      id ? `${resource}/${id}` : resource,
+      "GET",
+      params
     );
   }
 
-  public addAttributeGroup(data: any) {
-    return this.requestResource(`attribute-groups`, "POST", undefined, data);
+  public insert(resource: ShoperResource, data: any) {
+    validate_resource_call(resource, "INSERT");
+    return this.request_resource(resource, "POST", undefined, data);
   }
 
-  public iterateUserAddresses(sort?: any, filters?: object) {
-    return this.iterateList("user-addresses", sort, filters);
+  /**
+   * Returns an async generator that yields successive items.
+   * @param resource resource name
+   */
+  public iterate(resource: ShoperResource, options?: ShoperListOptions) {
+    validate_resource_call(resource, "LIST");
+    if (list_resources_that_are_not_lists.includes(resource)) {
+      throw new Error(`Resource ${resource} cannot be iterated.`);
+    }
+    return this.iterate_list(resource, options);
   }
 
-  public getUserAddress(id: number) {
-    return this.requestResource(`user-addresses/${id}`, "GET");
+  /**
+   * Returns all matching items.
+   */
+  public async list(resource: ShoperResource, options?: ShoperListOptions) {
+    validate_resource_call(resource, "LIST");
+    const data = [];
+    for await (const item of this.iterate_list(resource, options)) {
+      data.push(item);
+    }
+    return data;
   }
 
-  public deleteUserAddress(id: number) {
-    return this.requestResource(`user-addresses/${id}`, "DELETE");
+  public update(resource: ShoperResource, id: number, data: any) {
+    validate_resource_call(resource, "UPDATE");
+    return this.request_resource(`${resource}/${id}`, "PUT", undefined, data);
   }
 
-  public updateUserAddress(id: number, data: any) {
-    return this.requestResource(`user-addresses/${id}`, "PUT", undefined, data);
-  }
-
-  public addUserAddress(data: any) {
-    return this.requestResource(`user-addresses`, "POST", undefined, data);
-  }
-
-  public iterateParcels(sort?: any, filters?: object) {
-    return this.iterateList("parcels", sort, filters);
-  }
-
-  public getParcel(id: number) {
-    return this.requestResource(`parcels/${id}`, "GET");
-  }
-
-  public deleteParcel(id: number) {
-    return this.requestResource(`parcels/${id}`, "DELETE");
-  }
-
-  public updateParcel(id: number, data: any) {
-    return this.requestResource(`parcels/${id}`, "PUT", undefined, data);
-  }
-
-  public addParcel(data: any) {
-    return this.requestResource(`parcels`, "POST", undefined, data);
-  }
-
-  public iterateStatuses(sort?: any, filters?: object) {
-    return this.iterateList("statuses", sort, filters);
-  }
-
-  public getStatus(id: number) {
-    return this.requestResource(`statuses/${id}`, "GET");
-  }
-
-  public iterateTaxes(sort?: any, filters?: object) {
-    return this.iterateList("taxes", sort, filters);
-  }
-
-  public getTax(id: number) {
-    return this.requestResource(`taxes/${id}`, "GET");
-  }
-
-  public iterateCurrencies(sort?: any, filters?: object) {
-    return this.iterateList("currencies", sort, filters);
-  }
-
-  public getCurrency(id: number) {
-    return this.requestResource(`currencies/${id}`, "GET");
-  }
-
-  public iterateLanguages(sort?: any, filters?: object) {
-    return this.iterateList("languages", sort, filters);
-  }
-
-  public getLanguage(id: number) {
-    return this.requestResource(`languages/${id}`, "GET");
-  }
-
-  public getCategoriesTree() {
-    return this.requestResource(`categories-tree`, "GET");
-  }
-
-  public getCategoriesSubtree(id: number) {
-    return this.requestResource(`categories-tree/${id}`, "GET");
-  }
-
-  public iterateNews(sort?: any, filters?: object) {
-    return this.iterateList("news", sort, filters);
-  }
-
-  public getNews(id: number) {
-    return this.requestResource(`news/${id}`, "GET");
-  }
-
-  public deleteNews(id: number) {
-    return this.requestResource(`news/${id}`, "DELETE");
-  }
-
-  public updateNews(id: number, data: any) {
-    return this.requestResource(`news/${id}`, "PUT", undefined, data);
-  }
-
-  public addNews(data: any) {
-    return this.requestResource(`news`, "POST", undefined, data);
-  }
-
-  public iterateNewsCategories(sort?: any, filters?: object) {
-    return this.iterateList("news-categories", sort, filters);
-  }
-
-  public getNewsCategory(id: number) {
-    return this.requestResource(`news-categories/${id}`, "GET");
-  }
-
-  public deleteNewsCategory(id: number) {
-    return this.requestResource(`news-categories/${id}`, "DELETE");
-  }
-
-  public updateNewsCategory(id: number, data: any) {
-    return this.requestResource(
-      `news-categories/${id}`,
-      "PUT",
-      undefined,
-      data,
-    );
-  }
-
-  public addNewsCategory(data: any) {
-    return this.requestResource(`news-categories`, "POST", undefined, data);
-  }
-
-  public iterateNewsTags(sort?: any, filters?: object) {
-    return this.iterateList("news-tags", sort, filters);
-  }
-
-  public getNewsTag(id: number) {
-    return this.requestResource(`news-tags/${id}`, "GET");
-  }
-
-  public deleteNewsTag(id: number) {
-    return this.requestResource(`news-tags/${id}`, "DELETE");
-  }
-
-  public updateNewsTag(id: number, data: any) {
-    return this.requestResource(`news-tags/${id}`, "PUT", undefined, data);
-  }
-
-  public addNewsTag(data: any) {
-    return this.requestResource(`news-tags`, "POST", undefined, data);
-  }
-
-  public iterateNewsComments(sort?: any, filters?: object) {
-    return this.iterateList("news-comments", sort, filters);
-  }
-
-  public getNewsComment(id: number) {
-    return this.requestResource(`news-comments/${id}`, "GET");
-  }
-
-  public deleteNewsComment(id: number) {
-    return this.requestResource(`news-comments/${id}`, "DELETE");
-  }
-
-  public updateNewsComment(id: number, data: any) {
-    return this.requestResource(`news-comments/${id}`, "PUT", undefined, data);
-  }
-
-  public addNewsComment(data: any) {
-    return this.requestResource(`news-comments`, "POST", undefined, data);
-  }
-
-  public iterateNewsFiles(sort?: any, filters?: object) {
-    return this.iterateList("news-files", sort, filters);
-  }
-
-  public getNewsFile(id: number) {
-    return this.requestResource(`news-files/${id}`, "GET");
-  }
-
-  public deleteNewsFile(id: number) {
-    return this.requestResource(`news-files/${id}`, "DELETE");
-  }
-
-  public updateNewsFile(id: number, data: any) {
-    return this.requestResource(`news-files/${id}`, "PUT", undefined, data);
-  }
-
-  public addNewsFile(data: any) {
-    return this.requestResource(`news-files`, "POST", undefined, data);
-  }
-
-  public iterateShippings(sort?: any, filters?: object) {
-    return this.iterateList("shippings", sort, filters);
-  }
-
-  public getShipping(id: number) {
-    return this.requestResource(`shippings/${id}`, "GET");
-  }
-
-  public deleteShipping(id: number) {
-    return this.requestResource(`shippings/${id}`, "DELETE");
-  }
-
-  public updateShipping(id: number, data: any) {
-    return this.requestResource(`shippings/${id}`, "PUT", undefined, data);
-  }
-
-  public addShipping(data: any) {
-    return this.requestResource(`shippings`, "POST", undefined, data);
-  }
-
-  public getApplicationConfig() {
-    return this.requestResource(`application-config`, "GET");
-  }
-
-  private requestList(
+  private request_list(
     resource: string,
     limit: number = 50,
     page: number = 0,
     sort?: any,
-    filters?: object,
+    filters?: object
   ) {
-    let paramObject: any = {
+    let param_object: any = {
       limit,
       offset: limit * page,
     };
     if (sort) {
-      paramObject.order = sort;
+      param_object.order = sort;
     }
     if (filters) {
-      paramObject.filters = JSON.stringify(filters);
+      param_object.filters = JSON.stringify(filters);
     }
-    return this.requestResource(`${resource}`, "GET", paramObject);
+    return this.request_resource(resource, "GET", param_object);
   }
 
-  public async *iterateList(
+  public async *iterate_list(
     resource: string,
-    sort?: any,
-    filters?: object,
+    options?: ShoperListOptions
   ): AsyncIterableIterator<any> {
     let currentPage = 0;
     while (true) {
       try {
-        const data = await this.requestList(
+        const data = await this.request_list(
           resource,
           50,
           currentPage,
-          sort,
-          filters,
+          options ? options.sort : undefined,
+          options ? options.filters : undefined
         );
         if (data.list.length < 1) {
           return;
@@ -527,9 +208,10 @@ export class Client {
     }
   }
 
-  public async bulk(data: any) {
-    if (this.shouldRefreshToken) {
-      await this.refreshAccessToken();
+  public async bulk(data: any): Promise<any> {
+    await bucket.maybeThrottle();
+    if (this.should_refresh_token) {
+      await this.refresh_access_token();
     }
     try {
       const resp = await Request.request({
@@ -537,7 +219,7 @@ export class Client {
         method: "POST",
         data,
         headers: {
-          Authorization: `Bearer ${this.authToken!.accessToken}`,
+          Authorization: `Bearer ${this.auth_token!.access_token}`,
         },
         validateStatus: function (status: number) {
           return status === 404 || (status >= 200 && status < 300);
@@ -547,20 +229,25 @@ export class Client {
     } catch (error) {
       if (error.response && error.response.status === 404) {
         return null;
+      } else if (error.response.status === 429) {
+        // Exceeded request limit. Wait and repeat request.
+        bucket.pauseByCost(1);
+        return await this.bulk(data);
       } else {
         throw error;
       }
     }
   }
 
-  private async requestResource(
+  private async request_resource(
     path: string,
     method: string,
     params?: any,
-    data?: any,
-  ) {
-    if (this.shouldRefreshToken) {
-      await this.refreshAccessToken();
+    data?: any
+  ): Promise<any> {
+    await bucket.maybeThrottle();
+    if (this.should_refresh_token) {
+      await this.refresh_access_token();
     }
     try {
       const resp = await Request.request({
@@ -569,30 +256,34 @@ export class Client {
         params,
         data,
         headers: {
-          Authorization: `Bearer ${this.authToken!.accessToken}`,
+          Authorization: `Bearer ${this.auth_token!.access_token}`,
         },
       });
       return resp.data;
     } catch (error) {
       if (error.response && error.response.status === 404) {
         return null;
+      } else if (error.response.status === 429) {
+        // Exceeded request limit. Wait and repeat request.
+        bucket.pauseByCost(1);
+        return await this.request_resource(path, method, params, data);
       } else {
         throw error;
       }
     }
   }
 
-  private get shouldRefreshToken() {
+  private get should_refresh_token() {
     // refresh token 15 minutes before expiration
-    const expirationMargin = 60 * 15;
+    const expiration_margin = 60 * 15;
     return (
-      !this.authToken ||
-      Date.now() / 1000 - expirationMargin >
-        this.authToken.date + this.authToken.expiresIn
+      !this.auth_token ||
+      Date.now() / 1000 - expiration_margin >
+        this.auth_token.date + this.auth_token.expires_in
     );
   }
 
-  private async refreshAccessToken() {
+  private async refresh_access_token() {
     if (this.config.auth.method === AuthMethod.UserPassword) {
       try {
         const resp = await Request.post(
@@ -606,12 +297,12 @@ export class Client {
               client_id: this.config.auth.username,
               client_secret: this.config.auth.password,
             },
-          },
+          }
         );
-        const responseToken = resp.data;
-        this.authToken = {
-          accessToken: responseToken.access_token,
-          expiresIn: responseToken.expires_in,
+        const response_token = resp.data;
+        this.auth_token = {
+          access_token: response_token.access_token,
+          expires_in: response_token.expires_in,
           date: Date.now() / 1000,
         };
       } catch (error) {
@@ -619,11 +310,12 @@ export class Client {
         throw error;
       }
     } else if (this.config.auth.method === AuthMethod.Token) {
-      this.authToken = {
-        accessToken: this.config.auth.accessToken,
-        expiresIn: 99999999,
+      this.auth_token = {
+        access_token: this.config.auth.access_token,
+        expires_in: 99999999,
         date: Date.now() / 1000,
       };
+      // TODO implement refreshing access token
     } else {
       throw new Error("Unknown auth method");
     }

@@ -12,6 +12,7 @@
     "typescript": "^3.5.3"
   },
   "dependencies": {
-    "axios": "^0.19.0"
+    "axios": "^0.19.0",
+    "ts-leaky-bucket": "^1.1.1"
   }
 }

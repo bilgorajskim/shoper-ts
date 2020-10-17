@@ -1,3 +1,5 @@
 node_modules
 src
 tsconfig.json
+generate-resources.js
+.git
