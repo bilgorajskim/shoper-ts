@@ -227,12 +227,14 @@ export class Client {
       });
       return resp.data;
     } catch (error) {
-      if (error.response && error.response.status === 404) {
-        return null;
-      } else if (error.response.status === 429) {
-        // Exceeded request limit. Wait and repeat request.
-        bucket.pauseByCost(1);
-        return await this.bulk(data);
+      if (error.response) {
+        if (error.response.status === 404) {
+          return null;
+        } else if (error.response.status === 429) {
+          // Exceeded request limit. Wait and repeat request.
+          bucket.pauseByCost(1);
+          return await this.bulk(data);
+        }
       } else {
         throw error;
       }
