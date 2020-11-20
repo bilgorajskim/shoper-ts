@@ -234,6 +234,8 @@ export class Client {
           // Exceeded request limit. Wait and repeat request.
           bucket.pauseByCost(1);
           return await this.bulk(data);
+        } else {
+          throw error;
         }
       } else {
         throw error;
@@ -270,6 +272,8 @@ export class Client {
           // Exceeded request limit. Wait and repeat request.
           bucket.pauseByCost(1);
           return await this.request_resource(path, method, params, data);
+        } else {
+          throw error;
         }
       } else {
         throw error;
