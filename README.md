@@ -21,7 +21,7 @@ const shoper_client = new Client({
 });
 
 // Get a single product
-const single_[roduct = await shoper_client.get("products", 123);
+const single_product = await shoper_client.get("products", 123);
 
 // Get all products
 const all_products = await shoper_client.list("products");
